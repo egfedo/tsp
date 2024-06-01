@@ -147,7 +147,7 @@ class BinHeap:
         else:
             return None
 
-    def pop_max(self) -> Optional[tuple[int, Matrix]]:
+    def pop_max(self) -> Optional[tuple[int, object]]:
         if len(self.__storage) == 0:
             return None
         maximum = self.__storage[0]
@@ -174,6 +174,48 @@ class BinHeap:
 # dataset = "3\n0 8 86\n47 0 16\n87 54 0\n"
 # lines = dataset.strip().split("\n")
 # lines = file.readlines()
+def solve(n, array):
+
+    path = [0]
+
+    queue = BinHeap()
+    queue.insert(0, path)
+
+    bestLen = float('inf')
+    bestSolution = []
+
+    start = time.time_ns()
+
+    while not queue.empty():
+        length, curr_path = queue.pop_max()
+
+        if length >= bestLen:
+            break
+
+        if len(curr_path) == n:
+            full_len = length + array[curr_path[n-1]][curr_path[0]]
+            if full_len < bestLen:
+                bestLen = full_len
+                bestSolution = curr_path + [curr_path[0]]
+            continue
+
+        for vertex in range(n):
+            if vertex not in curr_path:
+                queue.insert(
+                    length + array[curr_path[len(curr_path) - 1]][vertex],
+                    curr_path + [vertex]
+                )
+
+    best_path = bestSolution
+
+    end = time.time_ns()
+
+    print(int(sum([array[best_path[i-1]][best_path[i]] for i in range(1, len(best_path))])))
+    print(" ".join(list(map(lambda x: str(x+1), best_path))))
+    # print(end-start)
+    return end - start
+
+
 n = int(input())
 
 array = [0] * n
@@ -182,36 +224,4 @@ for i in range(n):
     array[i] = list(map(lambda x: float(x), input().split(" ")))
     array[i][i] = math.inf
 
-#start = time.time_ns()
-
-matrix = Matrix(copy.deepcopy(array), [], [i for i in range(n)])
-matrix = matrix.add_vertex(0)
-
-queue = BinHeap()
-queue.insert(matrix.lower_bound, matrix)
-
-curr: Matrix
-bestSolution = Matrix(copy.deepcopy(array), [], [], math.inf)
-
-while not queue.empty():
-    curr = queue.pop_max()[1]
-
-    if curr.lower_bound >= bestSolution.lower_bound:
-        break
-
-    if len(curr.rem) == 0:
-        bestSolution = curr
-        continue
-
-    for vertex in curr.rem:
-        add = curr.add_vertex(vertex)
-        queue.insert(add.lower_bound, add)
-
-best_path = bestSolution.path
-
-#end = time.time_ns()
-
-print(int(sum([array[best_path[i-1]][best_path[i]] for i in range(1, len(best_path))])) +
-      int(array[best_path[len(best_path)-1]][best_path[0]]))
-print(" ".join(list(map(lambda x: str(x+1), best_path)) + [str(best_path[0]+1)]))
-#print(end-start)
+solve(n, array)
